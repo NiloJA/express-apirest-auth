@@ -7,13 +7,31 @@ import { generarJwt } from "../helpers/jwt.js";
 
 export const getUsuarios = async (req, res) => {
 
-    const usuarios = await Usuario.find({}, 'nombre email role google');
+    const desde = Number(req.query.desde) || 0;
+    
+    try {
+        const [usuarios, total] = await Promise.all([
+            Usuario
+                .find({}, 'nombre email role google img')
+                .skip( desde )
+                .limit( 5 ),
 
-    res.json({
-        ok: true,
-        usuarios,
-        uid: req.uid
-    })
+            Usuario.countDocuments()
+        ]);
+    
+        res.json({
+            ok: true,
+            usuarios,
+            total
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        })
+    }
+   
 }
 
 export const addUsuario = async (req, res = response) => {
